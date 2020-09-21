@@ -1,0 +1,7 @@
+com\routon\plcloud\face\test\config\webSocketConfig.class
+com\routon\plcloud\face\test\controller\timeController.class
+com\routon\plcloud\face\test\controller\testController.class
+com\routon\plcloud\face\test\controller\webSocketController.class
+com\routon\plcloud\face\test\server\webSocketServer.class
+com\routon\plcloud\face\App.class
+com\routon\plcloud\face\test\domain\FaceCompare.class

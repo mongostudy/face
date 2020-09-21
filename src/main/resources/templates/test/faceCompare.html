@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>layui</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="/layui/css/layui.css">
+</head>
+<body>
+<div id="auto_div" style="border:1px solid #e2e2e2;border-radius: 5px;background-color: #efefef;">
+
+</div> 
+<script type="text/javascript" src="/js/jquery.min.js"></script>          
+<script type="text/javascript" src="/layui/layui.js"></script>
+<script>
+layui.use(['form', 'layer'], function(){
+  var form = layui.form
+  ,layer = layui.layer;
+});
+
+$(document).ready(function(){
+	$.ajax({ 
+		url:"/test/showFaceCompare",
+		type:'post',
+		async:false,	
+		success: function(data) {
+			AutoComplete("auto_div",  data);
+
+			for (i in data) {
+				var div = document.getElementById(''+i);
+				
+				var photo = data[i].photo;
+	            var photoid = "#img"+i;
+				createPhoto(photoid,photo);
+				
+	            var name = data[i].name;
+	            var time = data[i].time;
+	            div.innerHTML = div.innerHTML+'&nbsp;&nbsp;&nbsp;<span style="font-size:14px;color:#333333;">'+name+'---'+time+'</span>';
+			}
+	    	
+		},
+	});
+});
+
+function AutoComplete(auto, data) {
+    var autoNode = $("#" + auto);   //缓存对象（弹出框）
+    autoNode.empty();
+    for (i in data) {
+    	var newDivNode = $("<div>").attr("id", i);
+    	newDivNode.attr("style", "margin-top:10px;margin-left:10px;margin-bottom:10px;border:1px solid #e2e2e2;");
+    	var imgDivNode = $("<img>").attr("id", "img"+i);
+    	
+    	imgDivNode.appendTo(newDivNode); 
+    	newDivNode.appendTo(autoNode);  
+    }
+}
+
+function createPhoto(id,photo){
+	$(id).attr('src','data:image/jpeg;base64,' + photo);
+}
+</script>
+
+</body>
+</html>

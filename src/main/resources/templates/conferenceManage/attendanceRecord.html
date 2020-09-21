@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+  <meta charset="utf-8">
+  <title>签到记录</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <base href="/"/>
+  <link rel="stylesheet" href="/layui/css/layui.css">
+	<link rel="stylesheet" href="/font-awesome/css/font-awesome.css">
+  <style type="text/css">
+        .layui-input:hover {
+			border-color: #54b5ff !important;
+		}
+		.layui-input::-webkit-input-placeholder {
+	       color: #c8c8c8;
+    	}
+		.layui-input,.layui-select,.layui-textarea {
+    		height:30px;
+    		line-height:1.3;
+		    line-height:30px;
+		    border-width:1px;
+		    border-style:solid;
+		    background-color:#fff;
+		    border-radius:2px
+		}
+		.layui-table th {
+			font-weight: bold;
+		}
+		.layui-table-view .layui-table td, .layui-table-view .layui-table th {
+			padding: 2px 0px !important;
+		}
+		.layui-table-cell a{
+			margin-bottom: 2px;
+		}
+		.layui-table-view {
+    		margin-top: 0px;
+		}
+  </style>
+</head>
+<body>
+<div style="width: 100%;height:53px;">
+  <div style="">
+  <div class="layui-inline">  
+    <form class="layui-form" lay-filter="visitorform">
+	  <div class="layui-inline">
+	      <div class="layui-input-inline" style="width:126px;margin-left:10px;height: 30px;line-height: 30px;">
+	        <select id="status" name="status">
+	          <option value ="">--签到状态--</option>
+	          <option value ="1">未签到</option>
+	          <option value ="2">已签到</option>
+	        </select>
+	      </div>
+	  </div>
+	  <div class="layui-inline" style="margin-left: 20px;">
+				<div class="layui-input-inline" style="width:126px;height: 30px;line-height: 30px;">
+					<select id="photoNumStatus" name="photoNumStatus">
+						<option value ="">--人员类别--</option>
+						<option value ="1">员工</option>
+						<option value ="2">访客</option>
+					</select>
+				</div>
+	  </div>
+	  <div class="layui-inline" style="">
+      	<label class="layui-form-label" style="line-height:30px;margin-top: 4px;padding-left: 0px;">签到时间</label>
+      	<div class="layui-input-inline" style="margin-top: 11px">
+        	<input type="text" style="height: 30px;line-height: 30px;" name="startdate" id="startdate" lay-verify="startdate" class="layui-input">
+      	</div>
+      	-
+      	<div class="layui-input-inline" style="margin-top: 11px">
+        	<input type="text" style="height: 30px;line-height: 30px;" name="enddate" id="enddate" lay-verify="enddate" class="layui-input">
+      	</div>
+      </div>
+  	</form>
+  	</div>
+	<div class="layui-inline" style="margin-left: 20px;width: 196px;">
+	  <input class="layui-input" style="height: 30px;line-height: 30px;" id="searchContent" placeholder="搜索...">
+	</div>
+	<button onmouseover="changeImg(this,2)" onmouseout="changeImg(this,1)" onmousedown="changeImg(this,3)" onmouseup="changeImg(this,2)" class="select-on layui-btn layui-btn" style="padding:0 0px;border: none;height: 30px;line-height: 30px;background-color: white;color: black;" id="doSearch"><img imgName="searchImg" src="/css/img/searchImg1.png">    </img></button>
+	
+  <div style="margin-top:13px;float:right;">  
+  	<button onmouseover="changeImg(this,2)" onmouseout="changeImg(this,1)" onmousedown="changeImg(this,3)" onmouseup="changeImg(this,2)" class="select-on layui-btn1" style="border: none;height: 30px;line-height: 30px;background-color: white;padding-right: 10px;" id="exportRecord"><img imgName="ExportImg" style="margin-bottom: 3px;" src="/css/img/ExportImg1.png">    </img>导出记录</button>
+  </div>
+</div>
+</div>
+<div style="width:98.5%;float: left;margin-left:10px;margin-right:10px;">
+	<table class="layui-hide" id="attendanceRecordList" lay-size="sm" lay-filter="test"></table>
+</div>
+<script type="text/html" id="authTpl">
+        {{#if (d.attribute === 0) { }}
+         <span>员工</span>
+        {{# }else if(d.attribute === 1){ }}
+        <span>访客</span>
+        {{# } }}
+</script>
+<script type="text/html" id="photoNum">
+	{{#  if(d.pic_num > 0){ }}
+	已添加{{d.pic_num}}张
+	{{#  } else{}}
+	未添加
+	{{#  } }}
+</script>
+<script src="/js/jquery.min.js"></script>
+<script src="/layui/layui.js"></script>
+<script type="text/javascript" src="/js/ajaxFilter.js"></script>
+<script>
+    $(function () {
+        window.parent.$("#toVisitorManageLi").siblings("li").removeClass("layui-this");
+        window.parent.$("#toVisitorManageLi").addClass("layui-this");
+    });
+	function changeImg(obj,status) {
+	    var imgName = $(obj).find("img").attr("imgName");
+	    $(obj).find("img").attr("src","/css/img/" + imgName + status + ".png");
+	}
+
+    layui.use(['table','laydate','form','layer'], function(){
+        var table = layui.table;
+        var laydate = layui.laydate;
+        var form = layui.form;
+        var parentHeight = document.documentElement.clientHeight;
+		var height = parentHeight-75;
+      	//执行一个laydate实例
+        laydate.render({
+          elem: '#startdate' //指定元素
+          ,type: 'datetime'
+        });
+        laydate.render({
+            elem: '#enddate' //指定元素
+            ,type: 'datetime'
+        });
+      
+        table.on('checkbox(test)', function(obj){
+          console.log(obj);
+        });
+        
+        $(document).ready(function() {       
+            // select下拉框选中触发事件
+            form.on("select", function(data){
+            	doSearch();
+            });
+        });
+      
+        //获取系统当前时间
+        function getNowFormatDate(num) {
+            var date = new Date();
+            var seperator1 = "-";
+            var seperator2 = ":";
+            var month = "";
+            var month = date.getMonth() + 1;
+            var strDate = date.getDate();
+            var hour = date.getHours();
+            var minutes = date.getMinutes();
+            var seconds = date.getSeconds();
+            if (month >= 1 && month <= 9) {
+                month = "0" + month;
+            }
+            if (strDate >= 0 && strDate <= 9) {
+                strDate = "0" + strDate;
+            }
+            if (hour >= 0 && hour <= 9) {
+            	hour = "0" + hour;
+            }
+            if (minutes >= 0 && minutes <= 9) {
+            	minutes = "0" + minutes;
+            }
+            if (seconds >= 0 && seconds <= 9) {
+            	seconds = "0" + seconds;
+            }
+            var currentdate ="";
+            if(num!=null){
+            	//获取起始日期
+            	currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+                + " " + "00" + seperator2 + "00" + seperator2 + "00";
+            }else{
+            	currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+            	+ " " + "23" + seperator2 + "59" + seperator2 + "59";
+            }
+            
+            return currentdate;
+        }
+        var enddate = getNowFormatDate();
+        var startdate =getNowFormatDate("start");
+        
+        function isdatetime(str) {
+            var result = str.match(/^(\d{4})(-|\/)(\d{1,2})\2(\d{1,2}) (\d{1,2}):(\d{1,2}):(\d{1,2})$/);
+            if (result == null) return false;
+            var d = new Date(result[1], result[3] - 1, result[4], result[5], result[6], result[7]);
+            return (d.getFullYear() == result[1] && (d.getMonth() + 1) == result[3] && d.getDate() == result[4] && d.getHours() == result[5] && d.getMinutes() == result[6] && d.getSeconds() == result[7]);
+        }
+        
+      	//表单初始赋值
+        form.val('visitorform', {
+          "startdate": startdate 
+          ,"enddate": enddate
+        })
+      	
+        var counts=0;
+        table.render({
+            elem: '#attendanceRecordList'
+            ,url:'/time/queryattendanceRecord?visit_time='+startdate+'&expire_time='+enddate
+			,limit:20
+            ,cols: [
+            	[
+              		{field:'name', title: '姓名'}
+              		,{field:'attribute', title: '公司'}
+              		,{field:'content', title: '职位'}
+              		,{field:'employee',title: '联系电话'}
+              		,{field:'visit_time',title: '类别'}
+              		,{field:'expire_time', title: '签到时间'}
+              		,{fixed: 'right', title:'签到设备名称'}
+           			]
+          		]
+        	,page: true
+        	,done:function(res, curr, count){  //res 接口返回的信息
+                var contentElement =document.querySelectorAll("a[class='layui-btn layui-btn-xs']");
+                var contentElements =document.querySelectorAll("a[class='layui-btn layui-btn-danger layui-btn-xs']");
+                var counts=contentElement.length+contentElements.length;
+                if(counts==0&&count!=0){
+                	$("[data-field='9']").removeClass("layui-table-col-special");
+                	$("[data-field='9']").addClass("layui-hide layui-table-col-special");
+                	var width=$(".layui-table-header").width();
+                	$(".layui-table").css("width",width);
+                	
+                }
+                var book_num=0;
+                var visiting_num=0;
+                var leave_num=0;
+               
+        		var map = res.map;
+        	    for(var key in map){
+        	    	if(key.indexOf("visiting_num")>-1){
+        	    		visiting_num = map[key];
+        	    	}else if(key.indexOf("book_num")>-1){
+        	    		book_num = map[key];
+        	    	}else{
+        	    		leave_num = map[key];
+        	    	}
+        	    }
+                $("#layui-table-page1").prepend("<div class=\"layui-box\" style=\"display: inline-block;" +
+                	      "background-color: #54b5ff;height:24px;line-height: 24px;text-align: center;width:15%;" +
+                	      "margin-left:30px;border:1px solid #e2e2e2;font-size: 14px;\">" +
+                	      "预约人数："+book_num+",在访人数："+visiting_num+",离开人数："+leave_num+"</div>");
+        	}  
+          });
+        
+        $("#exportRecord").on('click', function () {
+            var parentHeight = document.documentElement.clientHeight;
+            //var height = parentHeight*0.95-45;
+            layer.open({
+                type: 2,
+                title: '导出记录',
+                shadeClose: false,
+                shade:[0.2, '#000000'],
+                area: ['500px', '465px'],
+                content: '/time/exportRecord'
+            });
+         });
+        
+        document.onkeydown = function (e) { // 回车提交表单
+            var theEvent = window.event || e;
+            var code = theEvent.keyCode || theEvent.which;
+            if (code == 13) {
+                doSearch();
+            }
+        };
+
+		function containSpecial(s) {
+			var containSpecial = RegExp("^$|[^`~!@#$%^&*()_+<>?:\"{},.\\/\\\\;'[\\]！#￥（——）：；“”‘、，|《。》？、【】[\\]]+$");
+			for(var i=0;i<s.length;i++){
+				if (i == 0&&s.charAt(i)=="·"){
+					return false;
+				}if (i == s.length-1&&s.charAt(i)=="·"){
+					return false;
+				}
+				if (!containSpecial.test(s.charAt(i))) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+        function doSearch() {
+            var layer = layui.layer,$=layui.$;
+
+            var statusval   = document.getElementById("status").value;
+            var photonumval   = document.getElementById("photoNumStatus").value;
+            var visit_time = $('#startdate').val();
+            var expire_time = $('#enddate').val();
+            var searchContent = $('#searchContent').val();
+			searchContent=searchContent.trim();
+            var startflag = isdatetime(visit_time);
+            var endflag = isdatetime(expire_time);
+			if(visit_time == ""){
+                layer.alert('开始时间不能为空', {
+                	icon: 0,
+                	title:"提示",
+                });
+                return false;
+            }
+            if(expire_time == ""){
+                layer.alert('结束时间不能为空', {
+                	icon: 0,
+                	title:"提示",
+                    // skin: 'layui-layer-lan'
+                });
+                return false;
+            }
+            if(!startflag || !endflag){
+                layer.alert('请按yyyy-mm-dd hh:mm:ss格式输入时间', {
+                	icon: 0,
+                	title:"提示",
+                });
+                return false;
+            }
+            if(visit_time > expire_time){
+                layer.alert('结束时间不得早于开始时间', {
+                	icon: 0,
+                	title:"提示",
+                });
+                return false;
+            }
+			if (!containSpecial(searchContent)){
+				layer.msg('搜索条件不能含有特殊字符', {icon: 0, anim: 6});
+			}else {
+				table.reload('visitorList', {
+					where: {
+						statusval: statusval,
+						photonumval:photonumval,
+						visit_time: visit_time,
+						expire_time: expire_time,
+						searchContent: searchContent,
+					}
+					, page: {
+						curr: 1 //重新从第 1 页开始
+					}
+				});
+			}
+        }
+
+    });
+    
+</script>
+</body>
+</html>

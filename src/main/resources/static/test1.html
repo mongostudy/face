@@ -1,0 +1,427 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+    <title>身份证阅读器USB接入测试页面</title>
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script type="text/javascript">
+		//创建读卡控件
+        var CertCtl = new IDCertCtl();
+		console.log(CertCtl);
+		//身份证读卡控件创建
+        function IDCertCtl() {
+			//创建用于与服务交换数据的对象
+            this.xhr = createXmlHttp();
+			//连接
+            //this.connect = CertCtl_connect;
+			//断开
+            //this.disconnect = CertCtl_disconnect;
+			//获取状态
+            //this.getStatus = CertCtl_getStatus;
+			//读卡
+            /* this.readCert = CertCtl_readCert;
+			//读IC卡序列号
+			this.readICCardSN = CertCtl_readICCardSN;
+			//读身份证物理卡号
+			this.readIDCardSN = CertCtl_readIDCardSN; */
+        }
+
+		//创建XMLHttpRequest 对象，用于在后台与服务器交换数据
+        function createXmlHttp() {
+            var xmlHttp = null;
+            //根据window.XMLHttpRequest对象是否存在使用不同的创建方式
+            if (window.XMLHttpRequest) {
+                xmlHttp = new XMLHttpRequest(); //FireFox、Opera等浏览器支持的创建方式
+            } else {
+                xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");//IE浏览器支持的创建方式
+            }
+            return xmlHttp;
+        }
+
+      	//连接方法
+        function connect() {
+			//清空页面
+            clearForm();
+            try {
+				//调用对应的连接方法,并赋值给result
+                //var result = CertCtl.connect();
+				var result = "";
+				
+				CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/connect", false);
+				try {
+	            	CertCtl.xhr.send();
+	            } catch (e) {
+	            }
+	            
+	            if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+	                result = CertCtl.xhr.responseText;
+	                CertCtl.xhr.readyState = 1;
+	            }
+	            
+				//如果result为空,代表读卡插件未启动
+                if (result == "") {
+                    alert("未启动读卡插件!")
+                } else {
+					//result页面回显
+                    document.getElementById("result").value = result;
+                }
+            } catch (e) {
+            }
+        }
+		//连接方法
+        function CertCtl_connect() {
+            var result = "";
+			//创建请求 第一个参数是代表以post方式发送；第二个是请求端口和地址；第三个表示是否异步
+            CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/connect", false);
+			//发送请求
+            try {
+            	CertCtl.xhr.send();
+            } catch (e) {
+            }
+			//返回值readyState   0: 请求未初始化
+			//				    1: 服务器连接已建立
+			//				    2：请求已接收
+			//				    3: 请求处理中
+			//				    4: 请求已完成，且响应已就绪
+			//返回值status      200: "OK"
+			//					404: 未找到页面
+			//当返回值readyState为4且status为200时,为查询成功
+            if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+                result = CertCtl.xhr.responseText;
+                CertCtl.xhr.readyState = 1;
+            }
+            return result;
+        }
+
+      	//断开连接方法
+        function disconnect() {
+			//清空页面
+            clearForm();
+
+            try {
+				//调用对应的断开连接方法,并赋值给result
+                var result = CertCtl.disconnect();
+				//如果result为空,代表读卡插件未启动
+                if (result == "") {
+                    alert("未启动读卡插件!")
+                } else {
+					//result页面回显
+                    document.getElementById("result").value = result;
+                }
+            } catch (e) {
+            }
+        }
+		//断开方法
+        function CertCtl_disconnect() {
+            var result = "";
+			//创建请求 第一个参数是代表以post方式发送；第二个是请求端口和地址；第三个表示是否异步
+            CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/disconnect", false);
+			//发送请求
+            try {
+            	CertCtl.xhr.send();
+            } catch (e) {
+            }
+            if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+                result = CertCtl.xhr.responseText;
+                CertCtl.xhr.readyState = 1;
+            }
+            return result;
+        }
+		
+      	//获取状态方法
+        function getStatus() {
+			//清空页面
+            clearForm();
+
+            try {
+				//调用对应的获取状态方法,并赋值给result
+                var result = CertCtl.getStatus();
+				//如果result为空,代表读卡插件未启动
+                if (result == "") {
+                    alert("未启动读卡插件!")
+                } else {
+					//result页面回显
+                    document.getElementById("result").value = result;
+                }
+            } catch (e) {
+            }
+        }
+		//获取状态方法
+        function CertCtl_getStatus() {
+            var result = "";
+			//创建请求 第一个参数是代表以post方式发送；第二个是请求端口和地址；第三个表示是否异步
+            CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/getStatus", false);
+			//发送请求
+            try {
+            	CertCtl.xhr.send();
+            } catch (e) {
+            }
+            if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+                result = CertCtl.xhr.responseText;
+                CertCtl.xhr.readyState = 1;
+            }
+            return result;
+        }
+
+      	//读卡方法
+        function readCert() {
+			//清空页面
+            clearForm();
+			//开始时间
+            var startDt = new Date();
+			//调用对应的读卡方法
+            //var result = CertCtl.readCert();
+			var result = "";
+            try {
+				//创建请求 第一个参数是代表以post方式发送；第二个是请求端口和地址；第三个表示是否异步
+                CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/readCard", false);
+				//发送请求
+                CertCtl.xhr.send();
+                if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+                    result = CertCtl.xhr.responseText;
+                    CertCtl.xhr.readyState = 1;
+                }
+            } catch (e) {
+            }
+			//如果result为空,代表读卡插件未启动
+            if (result == "") {
+                alert("未启动读卡插件!")
+            } else {
+				//结束时间
+                var endDt = new Date();
+				//读卡时间回显
+                document.getElementById("timeElapsed").value = (endDt.getTime() - startDt.getTime()) + "毫秒";
+                document.getElementById("result").value = result;
+				var resultObj = eval('(' +result+')');
+				console.log(resultObj);
+				//resultFlag为0代表读卡成功
+                if (resultObj.resultFlag == "0") {
+					//回显相关数据
+                    document.getElementById("signature").value = resultObj.signature;
+                    document.getElementById("venderId").value = resultObj.venderId;
+                    document.getElementById("certType").value = resultObj.resultContent.certType;
+                    document.getElementById("partyName").value = resultObj.resultContent.partyName;
+                    document.getElementById("gender").value = resultObj.resultContent.gender;
+                    document.getElementById("nation").value = resultObj.resultContent.nation;
+                    document.getElementById("bornDay").value = resultObj.resultContent.bornDay;
+                    document.getElementById("certAddress").value = resultObj.resultContent.certAddress;
+                    document.getElementById("certNumber").value = resultObj.resultContent.certNumber;
+                    document.getElementById("certOrg").value = resultObj.resultContent.certOrg;
+                    document.getElementById("effDate").value = resultObj.resultContent.effDate;
+                    document.getElementById("expDate").value = resultObj.resultContent.expDate;
+                    document.getElementById("HeadPic").src = "data:image/jpeg;base64," + resultObj.resultContent.identityPic;
+                    document.getElementById("PhotoDisplay").src = "data:image/jpeg;base64," + resultObj.resultContent.identityPrintPic;
+                } else if (resultObj.resultFlag == "-1") {
+                    if (resultObj.errorMsg == "端口打开失败") {
+                        alert("读卡器未连接");
+                    } else {
+                        alert(resultObj.errorMsg);
+                    }
+                } else if (resultObj.resultFlag == "-2") {
+                    alert(resultObj.errorMsg);
+                }
+            }
+        }
+		//执行读卡操作
+        function CertCtl_readCert() {
+            var result = "";
+            try {
+				//创建请求 第一个参数是代表以post方式发送；第二个是请求端口和地址；第三个表示是否异步
+                CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/readCard", false);
+				//发送请求
+                CertCtl.xhr.send();
+                if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+                    result = CertCtl.xhr.responseText;
+                    CertCtl.xhr.readyState = 1;
+                }
+            } catch (e) {
+
+            }
+            return result;
+        }
+		
+        function readICCardSN() {
+			//清空页面
+            clearForm();
+
+            var result = "";
+            try {
+				//调用对应的获取状态方法,并赋值给result
+                //创建请求 第一个参数是代表以post方式发送；第二个是请求端口和地址；第三个表示是否异步
+	            CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/readICCardSN", false);
+				//发送请求
+	            try {
+	            	CertCtl.xhr.send();
+	            } catch (e) {
+	            }
+	            if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+	                result = CertCtl.xhr.responseText;
+	                CertCtl.xhr.readyState = 1;
+	            }
+				//如果result为空,代表读卡插件未启动
+                if (result == "") {
+                    alert("未启动读卡插件!")
+                } else {
+					//result页面回显
+                    document.getElementById("result").value = result;
+                }
+            } catch (e) {
+            }
+		}
+		
+		function readIDCardSN() {
+			//清空页面
+            clearForm();
+            var result = "";
+            try {
+				//调用对应的获取状态方法,并赋值给result
+                //var result = CertCtl.readIDCardSN();
+				//创建请求 第一个参数是代表以post方式发送；第二个是请求端口和地址；第三个表示是否异步
+	            CertCtl.xhr.open("POST", "http://127.0.0.1:18889/api/readIDCardSN", false);
+				//发送请求
+	            try {
+	            	CertCtl.xhr.send();
+	            } catch (e) {
+	            }
+	            if (CertCtl.xhr.readyState == 4 && CertCtl.xhr.status == 200) {
+	                result = CertCtl.xhr.responseText;
+	                CertCtl.xhr.readyState = 1;
+	            }
+				//如果result为空,代表读卡插件未启动
+                if (result == "") {
+                    alert("未启动读卡插件!")
+                } else {
+					//result页面回显
+                    document.getElementById("result").value = result;
+                }
+            } catch (e) {
+            }
+		}
+		
+		//转为Json格式
+        function toJson(str) {
+            //var obj = JSON.parse(str);
+            //return obj;
+            return eval('(' + str + ')');
+        }
+
+		//清空页面上显示的内容
+        function clearForm() {
+			//对应控件的值全部清空
+            document.getElementById("timeElapsed").value = "";
+            document.getElementById("certType").value = "";
+            document.getElementById("timeElapsed").value = "";
+            document.getElementById("venderId").value = "";
+            document.getElementById("signature").value = "";
+            document.getElementById("partyName").value = "";
+            document.getElementById("gender").value = "";
+            document.getElementById("nation").value = "";
+            document.getElementById("bornDay").value = "";
+            document.getElementById("certAddress").value = "";
+            document.getElementById("certNumber").value = "";
+            document.getElementById("certOrg").value = "";
+            document.getElementById("effDate").value = "";
+            document.getElementById("expDate").value = "";
+            document.getElementById("result").value = "";
+            document.getElementById("HeadPic").src = "";
+            document.getElementById("PhotoDisplay").src = "";
+        }
+    </script>
+</head>
+<body bgcolor="#D2F0FF">
+
+<h1 style="text-align:center;color:#5555FF;">身份证阅读器USB接入测试页面</h1>
+
+<table border="0" width="50%" cellpadding="0" cellspacing="0" style="padding-left:100px;">
+    <tr>
+        <td><input type="button" value="连接" onclick="connect()"></td>
+        <!-- <td><input type="button" value="状态" onclick="getStatus()"></td>
+        <td><input type="button" value="断开" onclick="disconnect()"></td> -->
+        <td><input type="button" value="读卡" onclick="readCert()"></td>
+		<td><input type="button" value="读IC卡序列号" onclick="readICCardSN()"></td>
+		<td><input type="button" value="读身份证物理卡号" onclick="readIDCardSN()"></td>
+    </tr>
+</table>
+<br/>
+<table border="0" width="100%" cellpadding="0" cellspacing="10">
+    <tr>
+        <td align="right">读卡时间：</td>
+        <td><input type="text" id="timeElapsed" size="49" style="width:400px;" readonly="readonly"></td>
+    </tr>
+    <tr>
+        <td align="right">数字签名：</td>
+        <td><input type="text" id="signature" size="49" style="width:400px;" readonly="readonly"></td>
+    </tr>
+    <tr>
+        <td align="right">厂家标识：</td>
+        <td><input type="text" id="venderId" size="49" style="width:400px;" readonly="readonly"></td>
+    </tr>
+    <td align="right">卡类型：</td>
+    <td><input type="text" id="certType" size="49" style="width:400px;" readonly="readonly">(1-中国居民身份证，50-外国人永久居住证证，54-台湾居住证，55-港澳居住证)
+    </td>
+    </tr>
+    <tr>
+        <td align="right">中/英姓名：</td>
+        <td><input type="text" id="partyName" size="49" style="width:400px;" readonly="readonly">(要求中间，两头都没有空格)</td>
+    </tr>
+    <tr>
+        <td align="right">性别：</td>
+        <td><input type="text" id="gender" size="49" style="width:400px;" readonly="readonly">(取值为“1”（表示“男”）或“0”（表示“女”）)
+        </td>
+    </tr>
+    <tr>
+        <td align="right">民族/国籍：</td>
+        <td><input type="text" id="nation" size="49" style="width:400px;" readonly="readonly">(汉字即可)</td>
+    </tr>
+    <tr>
+        <td align="right">出生日期：</td>
+        <td><input type="text" id="bornDay" size="49" style="width:400px;" readonly="readonly">(要求格式为:yyyyMMdd，长度为8)
+        </td>
+    </tr>
+    <tr>
+        <td align="right">住址：</td>
+        <td><input type="text" id="certAddress" size="49" style="width:400px;" readonly="readonly">(外国人永久居留身份证地址为“空”)
+        </td>
+    </tr>
+    <tr>
+        <td align="right">身份证号：</td>
+        <td><input type="text" id="certNumber" size="49" style="color:#FF0000;width:400px;" readonly="readonly">(居民身份号码，长度18位)
+        </td>
+    </tr>
+    <tr>
+        <td align="right">签发机关：</td>
+        <td><input type="text" id="certOrg" size="49" style="width:400px;" readonly="readonly">(外国永久居留身份证签发机关为“机关代码”)
+        </td>
+    </tr>
+    <tr>
+        <td align="right">开始期限：</td>
+        <td><input type="text" id="effDate" size="49" style="width:400px;" readonly="readonly">(要求格式为:yyyyMMdd，长度为8)
+        </td>
+    </tr>
+    <tr>
+        <td align="right">结束期限：</td>
+        <td><input type="text" id="expDate" size="49" style="width:400px;" readonly="readonly">(要求格式为:yyyyMMdd，长度为8，或者是“长期”)
+        </td>
+    </tr>
+    <tr>
+        <td align="right">结果：</td>
+        <td><textarea id="result" rows="8" cols="47" style="width:400px;" readonly="readonly"></textarea></td>
+    </tr>
+    <tr>
+        <td align="right">照片：</td>
+        <td><img id="HeadPic" style="height: 126px; width: 102px" align="top" />
+            <img id="PhotoDisplay" style="width:341px; height:443px;"/>
+        </td>
+    </tr>
+</table>
+
+<!-- <object id="CertCtl" type="application/cert-reader" width="0" height="0">
+    <object classid="clsid:30516390-004F-40B9-9FC6-C9096B59262E" id="CertCtl" width="0" height="0">
+        <object ID="CertCtl" classid="30516390-004F-40B9-9FC6-C9096B59262E" TYPE="application/cert-reader" width=0
+                height=0>
+            <p style="color:#FF0000;">控件不可用，可能未正确安装控件及驱动，或者控件未启用。</p>
+        </object>
+    </object>
+</object> -->
+</body>
+</html>

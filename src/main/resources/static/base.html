@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>日历控件测试</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="/layui/css/layui.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.css">
+</head>
+<body>
+<style>
+	#test-n1 .layui-laydate-content td, #test-n1 .layui-laydate-content th {
+        width: 56px;
+        height: 28px;
+    }
+	.laydate-day-mark {
+		background-color: #f2f2f2;
+		color: #333333;
+		height: 27px;
+	}
+	.laydate-set-ym span {
+		text-decoration:underline;
+	}
+    span.laydate-day-mark {
+        line-height: 28px;
+    } 
+    .laydate-day-mark::after {
+        background-color: #f2f2f2;
+    }
+</style>          
+<div class="layui-form">
+  <div class="layui-form-item">
+    <div class="layui-inline">
+      <div class="layui-input-inline">
+        <input type="text" class="layui-input focus_start" id="start" placeholder="yyyy-MM-dd">
+      </div>
+    </div>
+    -
+    <div class="layui-inline">
+      <div class="layui-input-inline">
+        <input type="text" class="layui-input focus_end" id="end" placeholder="yyyy-MM-dd">
+      </div>
+    </div>
+  </div>
+</div>
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+  <legend>直接嵌套显示</legend>
+</fieldset>
+ 
+<div class="site-demo-laydate" style="margin-left: 30px;">
+  <input type="hidden" id="appointmentDate" value="6,7">
+  <div class="layui-inline" id="test-n1"></div>
+</div>
+
+
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
+  <legend>弹窗测试</legend>
+</fieldset>
+<div >  
+  <button data-type="auto" class="layui-btn layui-btn-normal" id="attendanceRecord">签到记录</button>
+</div>
+            
+<script type="text/javascript" src="/js/jquery.min.js"></script>          
+<script type="text/javascript" src="/layui/layui.js"></script>
+<script type="text/javascript">
+layui.use(['laydate','layer'], function(){
+  var laydate = layui.laydate,
+      layer = layui.layer;
+  
+  //直接嵌套显示
+  var datamap = {};
+  var new_date = new Date();
+  var now_year = new_date.getFullYear();
+  var now_month = new_date.getMonth() + 1;
+  var now_day = new_date.getDate();
+  if (now_month >= 1 && now_month <= 9) {
+	  now_month = "0" + now_month;
+  }
+  if (now_day >= 1 && now_day <= 9) {
+	  now_day = "0" + now_day;
+  }
+  
+  var mm = now_year + '-' + now_month + '-' + now_day;
+  var defaultEndTime = now_year + '-12-31';
+  
+  laydate.render({
+    elem: '#start'
+    ,value: mm
+    , done: function (value, date, endDate) {
+    	var end_time = $('#end').val();
+    	$.ajax({ 
+    		url:"/time/queryTime2TimeWeekend",
+    		type:'post',
+    		data:{startTime : value, endTime : end_time},
+    		async:false,	
+    		success: function(data) {
+    			var result = eval("("+data+")");
+    			datamap = {};
+    			datamap = result; 
+    		}
+    	});
+    	$('#test-n1').html('');
+    	loding_date(value, datamap, value, end_time);
+    }
+  });
+  
+  laydate.render({
+    elem: '#end'
+    ,value: defaultEndTime
+    , done: function (value, date, endDate) {
+    	var start_time = $('#start').val();
+    	$.ajax({ 
+    		url:"/time/queryTime2TimeWeekend",
+    		type:'post',
+    		data:{startTime : start_time, endTime : value},
+    		async:false,	
+    		success: function(data) {
+    			var result = eval("("+data+")");
+    			datamap = {};
+    			datamap = result; 
+    		}
+    	});
+    	$('#test-n1').html('');
+    	loding_date(start_time, datamap, start_time, value);
+    }
+  });
+  //监听起始时间发生变化
+  $(function () {
+      $('.focus_start').bind('input propertychange', function () {
+         var start = $(this).val();
+         var end_time = $('#end').val();
+     	 $.ajax({ 
+     		url:"/time/queryTime2TimeWeekend",
+     		type:'post',
+     		data:{startTime : start, endTime : end_time},
+     		async:false,	
+     		success: function(data) {
+     			var result = eval("("+data+")");
+     			datamap = {};
+     			datamap = result; 
+     		}
+     	});
+     	$('#test-n1').html('');
+     	loding_date(start, datamap, start, end_time);
+      });  
+  });
+  //监听结束时间发生变化
+  $(function () {
+      $('.focus_end').bind('input propertychange', function () {
+         var  end = $(this).val();
+         var start_time = $('#start').val();
+     	 $.ajax({ 
+     		url:"/time/queryTime2TimeWeekend",
+     		type:'post',
+     		data:{startTime : start_time, endTime : end},
+     		async:false,	
+     		success: function(data) {
+     			var result = eval("("+data+")");
+     			datamap = {};
+     			datamap = result; 
+     		}
+     	});
+     	$('#test-n1').html('');
+     	loding_date(start_time, datamap, start_time, end);
+      });  
+  });
+  
+  //初始化当前时间段周末
+  $.ajax({ 
+	url:"/time/queryTime2TimeWeekend",
+	type:'post',
+	data:{startTime : mm, endTime : defaultEndTime},
+	async:false,	
+	success: function(data) {
+		var result = eval("("+data+")");
+		datamap = result; 
+	}
+  });
+  
+  //加载日历控件
+  loding_date(new_date, datamap, mm, defaultEndTime);
+  
+  function loding_date(date_value, markshow, starttime, endtime) {
+	  laydate.render({
+		    elem: '#test-n1'
+		    ,theme: 'grid'
+		    , value: date_value
+		    , isInitValue: false
+		    ,min: starttime
+		    ,max: endtime
+		    ,showBottom: false
+		    ,position: 'static'
+		    /* ,change: function (value, date) {
+		    	mark_date(date,$("#appointmentDate").val());
+		    	console.log(datamap);
+		    	//剔除标记为班的日期
+		    	var datashow = {};
+		    	for(var i in datamap){
+		    		if(datamap[i].indexOf("班")>-1){
+		  		    }else{
+		  		    	datashow[i] = datamap[i];
+		  		    }
+		    	}
+		    	console.log(datashow);
+		    	$('#test-n1').html('');
+		    	loding_date(value, datashow);
+		    	hide_mr(date);
+		    } */
+		    ,change: function (value, date) {
+		    	hide_mr(date);
+		    }
+		    , done: function (value, date, endDate) {
+		    	var start_time = $('#start').val();
+		    	var end_time = $('#end').val();
+		    	chose_moban(value, datamap);
+		    	console.log(datamap);
+		    	loding_date(value, datamap, start_time, end_time);//重要！，再标注一个日期后会刷新当前日期变为初始值，所以必须调用当前选定日期。
+		    	hide_mr(date);
+		    }
+		    , mark: markshow//重要json！
+	}); 
+  }
+
+  function hide_mr(value) {
+      var mm = value.year + '-' + value.month + '-' + value.date;
+      //console.log(mm);
+      $('.laydate-theme-grid table tbody').find('[lay-ymd="' + mm + '"]').removeClass('layui-this');
+  }
+  
+  function mark_date(value,appointmentDate) {
+	  if(appointmentDate!=null && appointmentDate!=''){
+          var dates = appointmentDate.split(",");
+          for(var i=0;i<dates.length;i++){
+              if(dates[i]=="7"){
+                  dates[i] = 0;
+              }
+
+              var s = $("table>tbody>tr").find("td:eq("+dates[i]+")");
+              //console.log(s);
+              for (a in s) {
+            	  var html = s[a].outerHTML;
+            	  var day = s[a].innerText;
+            	  //console.log(html);
+            	  if(html != null){
+                	  var index = html.indexOf('lay-ymd'); 
+                	  var start = index + 9;
+                	  var end = start + 7;
+                	  var subtime = html.substring(start,end);
+                	  var subtimearray = subtime.split('-');
+                	  if (subtimearray[1] >= 1 && subtimearray[1] <= 9) {
+                		  subtimearray[1] = "0" + subtimearray[1];
+                      }
+                	  if (day >= 1 && day <= 9) {
+                		  day = "0" + day;
+                      }
+                	  var weekday = subtimearray[0] + '-' + subtimearray[1]+ '-' +day;
+                	  var end=new Date(weekday.replace(/-/g,"/"));
+                	  var begin=new Date(mm.replace(/-/g,"/"));
+                	  var num = end - begin ;
+                	  //console.log(num);
+                	  if(value.month == subtimearray[1] && num > 0){
+                		  //var weekday = value.year + '-' + subtimearray[1]+ '-' +day;
+                		  //console.log(weekday);
+                		  if (!datamap.hasOwnProperty(weekday)) {
+                			  datamap[weekday] = '休';
+    					  }
+                	  } 
+            	  }
+              }
+          }
+      }
+  }
+  
+  //定义添加/编辑标注方法
+  function chose_moban(obj_date, markJson) {
+	  $('#test-n1').html('');//重要！由于插件是嵌套指定容器，再次调用前需要清空原日历控件
+	  if (markJson.hasOwnProperty(obj_date)) {
+          delete markJson[obj_date];
+      } else {
+          //添加属性
+          markJson[obj_date] = '休';
+      }
+	  /* if (markJson.hasOwnProperty(obj_date)) {
+          //delete markJson[obj_date];
+    	  if(markJson[obj_date].indexOf("班")>-1){
+    		  markJson[obj_date] = '休';
+  		  }else{
+  			markJson[obj_date] = '班';
+  		  }
+      } else {
+          //添加属性
+          markJson[obj_date] = '休';
+      } */
+  }
+  
+  $("#attendanceRecord").on('click', function () {
+      var parentHeight = document.documentElement.clientHeight;
+      var height = parentHeight*0.95-45;
+      layer.open({
+          type: 2,
+          title: '签到记录',
+          shadeClose: false,
+          shade:[0.2, '#000000'],
+          area: ['1140px', height+'px'],
+          content: '/time/attendanceRecord'
+      });
+  });
+  
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script type="application/javascript">
+	    $(document).ready(function(){
+	    	initSocket();
+	    });
+	    
+	    var MaxInputs    = 3; //maximum input boxes allowed  
+    	var autodiv   = $("#auto_div"); //Input boxes wrapper ID  
+    	var x = 1; //initlal text box count
+    	var FieldCount=1; //to keep track of text box added
+    	var socket ;
+        //登录过后初始化socket连接
+        //function initSocket(userId) {
+        function initSocket() {
+            if(typeof(WebSocket) == "undefined") {
+                console.log("您的浏览器不支持WebSocket");
+            }else {
+                console.log("您的浏览器支持WebSocket/websocket");
+            }
+            //socket连接地址: 注意是ws协议
+            //socket = new WebSocket("ws://localhost:8081/websocket/"+userId);
+            socket = new WebSocket("ws://localhost:8081/websocket");
+            socket.onopen = function() {
+                console.log("Socket 已打开");
+            };
+            //获得消息事件
+            socket.onmessage = function(msg) {
+            	var data = msg.data;
+            	
+                if(data != 'success'){
+                	var obj = eval("("+data+")");
+                    var name = obj.name;
+                    var time = obj.time;
+                    var photo = obj.photo;
+                	
+                	AutoComplete("auto_div");
+                	
+                	if(x>=2){
+                		var currentid = FieldCount-1;
+            			var vcurrent = document.getElementById("div"+ currentid);
+            			
+            			insertnewDivbefore(FieldCount,vcurrent);
+                	}
+                    var photoid = "#img"+FieldCount;
+                    createPhoto(photoid,photo);
+                    
+                    var div = document.getElementById("div"+FieldCount);
+                    div.innerHTML = div.innerHTML+'&nbsp;&nbsp;&nbsp;<span style="font-size:14px;color:#333333;">'+name+'---'+time+'</span>';
+                    FieldCount++;
+                    x++;
+                }
+            };
+            //关闭事件
+            socket.onclose = function() {
+                console.log("Socket已关闭");
+            };
+            //错误事件
+            socket.onerror = function() {
+            	console.log("Socket发生了错误");
+            }
+            $(window).unload(function(){
+                socket.close();
+            });
+        }
+        
+        function AutoComplete(auto) {
+        	var autoNode = $("#" + auto); 
+        	if(x <= MaxInputs){
+        		var newDivNode = $("<div>").attr("id", "div"+FieldCount);
+                newDivNode.attr("style", "margin-top:10px;margin-left:10px;margin-bottom:10px;border:1px solid #e2e2e2;");
+                var imgDivNode = $("<img>").attr("id", "img"+FieldCount);
+                imgDivNode.attr("width",164);
+                imgDivNode.attr("height",164);
+                
+                imgDivNode.appendTo(newDivNode);
+                newDivNode.appendTo(autoNode);
+        	}else{
+        		var lastid = $("#auto_div > div").last().attr("id");
+        		$("#"+lastid).remove();
+        		x--;
+        		AutoComplete("auto_div"); 
+        	}
+        }
+
+        function insertnewDivbefore(FieldCount,vcurrent) {
+        	var newNodeTop = document.getElementById("div"+ FieldCount);
+            vcurrent.parentNode.insertBefore(newNodeTop, vcurrent);
+        }
+        
+        function createPhoto(id,photo){
+        	//$(id).attr('src','data:image/jpeg;base64,' + photo);
+        	if(photo!=""){
+        		$(id).attr('src','data:image/jpeg;base64,' + photo);
+                var theImage = new Image();
+                theImage.src = $(id).attr("src");
+                theImage.onload = function(){
+                   var width = "164";
+                   var height = "164";
+                   if (width / height > this.width / this.height) {
+                      var changeWidth = (this.width / this.height) * height;
+                      $(id).attr("width",changeWidth);
+                   } else {
+                      var changeHeight = (width * this.height) / this.width;
+                      $(id).attr("height",changeHeight);
+                  }
+                }
+        	}
+        } 
+    </script>
+</head>
+<body>
+<div id="auto_div" style="border:1px solid #e2e2e2;border-radius: 5px;background-color: #efefef;">
+</div> 
+</body>
+</html>

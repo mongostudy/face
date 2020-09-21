@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>后台加载数据</title>
+  <meta name="renderer" content="webkit">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <link rel="stylesheet" href="/layui/css/layui.css">
+  <link rel="stylesheet" href="/font-awesome/css/font-awesome.css">
+</head>
+<body>
+<style>
+	#test-n1 .layui-laydate-content td, #test-n1 .layui-laydate-content th {
+        width: 110px;
+        height: 40px;
+    }
+	.laydate-day-mark {
+		background-color: #5FB878;
+		color: white;
+	}
+    span.laydate-day-mark {
+        line-height: 40px;
+    }
+    .laydate-day-mark::after {
+        background-color: #5FB878;
+    }
+    .ng-laydate-disabled, .layui-laydate .ng-laydate-disabled:hover {
+        background: #5FB878!important;
+        color: white!important;
+    }
+    .laydate-day-mark-div {
+        color: white;
+        width: 100px;
+        height: 60px;
+    } 
+</style>          
+<fieldset class="layui-elem-field layui-field-title" style="margin-top: 30px;">
+  <legend>直接嵌套显示</legend>
+</fieldset>
+ 
+<div class="site-demo-laydate" style="margin-left: 30px;width:500px;height:500px;border:1px solid #e2e2e2">
+  <input type="hidden" id="appointmentDate" value="6,7">
+  <div class="layui-inline" id="test-n1"></div>
+</div>
+          
+<script type="text/javascript" src="/js/jquery.min.js"></script>          
+<script type="text/javascript" src="/layui/layui.js"></script>
+<script type="text/javascript">
+layui.use(['laydate','layer'], function(){
+  var laydate = layui.laydate,
+      layer = layui.layer;
+  
+  var datamap = {};
+  var new_date = new Date();
+  var year = new_date.getFullYear();
+  var starttime = "2019-11-03";
+  //直接嵌套显示
+  $.ajax({ 
+	url:"/time/queryYearTime",
+	type:'post',
+	data:{year : year},
+	async:false,	
+	success: function(data) {
+		var result = eval("("+data+")");
+		datamap = result; 
+	},
+  });
+  
+  loding_date(starttime, datamap);
+  function loding_date(date_value, markshow) {
+	  laydate.render({
+		    elem: '#test-n1'
+		    ,theme: 'grid'
+		    , value: date_value
+		    ,isInitValue: false
+		    ,min: starttime
+		    ,position: 'static'
+		    /* , change: function (value, date) {
+		    	var year = date.year;
+		    	$.ajax({ 
+		    		url:"/time/queryYearTime",
+		    		type:'post',
+		    		data:{year : year},
+		    		async:false,	
+		    		success: function(data) {
+		    			var result = eval("("+data+")");
+		    			datamap = result; 
+		    		},
+		    	}); 
+		    	$('#test-n1').html('');
+		    	console.log(datamap);
+		    	loding_date(value, datamap);
+		    } */  
+		    , done: function (value, date, endDate) {
+		    	console.log('done');
+		    	chose_moban(value, datamap);
+		    }
+		    , mark: markshow//重要json！
+	}); 
+  }
+
+  //定义添加/编辑标注方法
+  function chose_moban(obj_date, markJson) {
+	  $('#test-n1').html('');//重要！由于插件是嵌套指定容器，再次调用前需要清空原日历控件
+      if (markJson.hasOwnProperty(obj_date)) {
+          delete markJson[obj_date]
+      } else {
+          //添加属性
+          markJson[obj_date] = '休'
+      }
+      loding_date(obj_date, markJson);//重要！，再标注一个日期后会刷新当前日期变为初始值，所以必须调用当前选定日期。
+  }
+});
+</script>
+
+</body>
+</html>

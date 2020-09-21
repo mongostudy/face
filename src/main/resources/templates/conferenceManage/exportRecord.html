@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>导出记录</title>
+<base href="/"/>
+<link rel="stylesheet" href="/layui/css/layui.css" media="all"/>
+<style>
+</style>
+</head>
+<body>
+ <form  id="show" class="layui-form" action="">
+ <div style="margin-top:30px;padding-left:20px;float: left;">
+  <div class="layui-form-item">
+    <label class='layui-form-label' style="line-height: 14px;padding-right: 11px;color: #333333;">开始日期</label>
+    <img src="/css/img/required.png" style="margin-top: 11px;float: left;margin-right: 11px;">
+     <div class="layui-input-block">
+       <input type="text" class="layui-input" lay-verify='required' id="start" style="width:300px;height:32px;border-radius:4px;" placeholder="yyyy-MM-dd">
+     </div>
+  </div>
+
+  <div class="layui-form-item">
+    <label class='layui-form-label' style="line-height: 14px;padding-right: 11px;color: #333333;">结束日期</label>
+    <img src="/css/img/required.png" style="margin-top: 11px;float: left;margin-right: 11px;">
+     <div class="layui-input-block">
+       <input type="text" class="layui-input" lay-verify='required' id="end" style="width:300px;height:32px;border-radius:4px;" placeholder="yyyy-MM-dd">
+     </div>
+  </div>
+  
+  <div class="layui-form-item">
+  <label class="layui-form-label" style="line-height: 14px;padding-right: 11px;color: #333333;">签到时段</label>
+      <img src="/css/img/required.png" style="margin-top: 11px;float: left;margin-right: 11px;">
+      <div class="layui-input-inline" style="width:300px;height:32px;" id="test"></div>
+  </div>
+  
+  </div>
+  <div  style="position: fixed; bottom:20px;right:20px;">
+      <button type="button" id="export" class="layui-btn layui-btn-ks">导出</button>
+  </div>
+</form>
+
+<script type="text/javascript" src="/js/jquery.min.js"></script>
+<script type="text/javascript" src="/layui/layui.js"></script>
+<script type="text/javascript" src="/js/ajaxFilter.js"></script>
+<script type="text/javascript" src="/layui/layui.js"></script>
+<script type="text/javascript" src="/js/xm-select.js"></script>
+<script>
+layui.use(['laydate','layer'], function(){
+	var $ = layui.$;
+	var laydate = layui.laydate;
+	var layer = layui.layer;
+	
+	laydate.render({
+        elem: '#start' //指定元素
+    });
+	
+	laydate.render({
+        elem: '#end' //指定元素
+    });
+	
+	//判断输入框中输入的日期格式为yyyy-MM-dd
+	function isdate(str) {
+        var result = str.match(/^(\d{1,4})(-|\/)(\d{1,2})\2(\d{1,2})$/);
+        if (result == null) return false;
+        var d = new Date(result[1], result[3] - 1, result[4]);
+        return (d.getFullYear() == result[1] && d.getMonth() + 1 == result[3] && d.getDate() == result[4]);
+    }
+
+	
+	$('#export').on('click',function(){
+		//获取当前多选选中的值
+		var selectArr = test.getValue('nameStr');
+		var selectTime = JSON.stringify(selectArr, null, 2)
+		
+		var startTime = $("#start").val();
+		var endTime = $("#end").val();
+		if(startTime==""){
+			 layer.msg('开始日期不能为空',{icon: 0,anim:6,time:1000}, function(index){
+		 		$("#start").focus();
+				layer.close(index);
+			 });
+			 return false;
+		}else{
+			if(!isdate(startTime)){
+				layer.msg('请按yyyy-MM-dd格式输入开始日期',{icon: 0,anim:6,time:1000}, function(index){
+			 		$("#start").focus();
+					layer.close(index);
+				 });
+				 return false;
+			}
+		}
+		if(endTime==""){
+			 layer.msg('结束日期不能为空',{icon: 0,anim:6,time:1000}, function(index){
+		 		$("#end").focus();
+				layer.close(index);
+			 });
+			 return false;
+		}else{
+			if(!isdate(endTime)){
+				layer.msg('请按yyyy-MM-dd格式输入结束日期',{icon: 0,anim:6,time:1000}, function(index){
+			 		$("#end").focus();
+					layer.close(index);
+				 });
+				 return false;
+			}
+		}
+		if(startTime > endTime){
+			layer.msg('开始日期不能大于结束日期',{icon: 0,anim:6,time:1000}, function(index){
+				layer.close(index);
+			 });
+            return false;
+        }
+		
+		/* console.log(selectTime);
+		console.log(selectTime.length); */
+		if(selectTime.length==2){
+			layer.msg('签到时段为必填项',{icon: 0,anim:6,time:1000}, function(index){
+				layer.close(index);
+			});
+            return false;
+		}
+	});
+});
+
+var test = xmSelect.render({
+	el: '#test', 
+	tips: '请选择签到时间段',
+	theme: {
+		color: '#54b5ff',
+	},
+	style: {
+		borderRadius: '4px',
+		height:'32px',
+	},
+	toolbar: {
+		show: true,
+		list: [ 'ALL', 'CLEAR', 'REVERSE' ]
+	},
+	data: [
+		{name: '08:00 - 12:00', value: '08:00 - 12:00'},
+		{name: '13:00 - 17:00', value: '13:00 - 17:00'},
+		{name: '19:00 - 20:00', value: '19:00 - 20:00'},
+		{name: '21:00 - 23:00', value: '21:00 - 23:00'},
+	]
+});
+</script>
+
+</body>
+</html>
