@@ -23,7 +23,7 @@ public class timeController {
 	@RequestMapping("/exportRecord")
     public String exportRecord(){
 		logger.info("导出test====================11");
-		System.err.println("导出test====================");
+		System.err.println("导出test====================xiugai");
 		return "conferenceManage/exportRecord";
     }
 	
